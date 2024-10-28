@@ -3,10 +3,30 @@ import { AuthService } from './auth.service';
 import { PassportModule } from '@nestjs/passport';
 import { UserModule } from 'src/user/user.module';
 import { AuthController } from './auth.controller';
+import { JwtModule } from '@nestjs/jwt';
+import { JwtStrategy } from './jwt.strategy';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtAuthGuard } from './jwt-auth.guard';
 
 @Module({
-  imports: [UserModule, PassportModule],
-  providers: [AuthService],
+  imports: [
+    UserModule,
+    PassportModule,
+    JwtModule.register({
+      global: true,
+      secret: 'temp secret',
+      signOptions: { expiresIn: '1d' },
+    })
+  ],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    // 해당 옵션을 추가하면 모든 컨트롤러에 JwtAuthGuard 가 적용된다.
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard
+    }
+  ],
   controllers: [AuthController],
   exports: [AuthService],
 })
