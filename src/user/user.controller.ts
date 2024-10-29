@@ -8,6 +8,8 @@ import { FindUserResDto } from './dto/res.dto';
 import { PageResDto } from '../common/dto/res.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { User, UserAfterAuth } from '../common/decorater/user.decorator';
+import { Roles } from '../common/decorater/role.decorator';
+import { Role } from './enum/user.enum';
 
 @ApiBearerAuth()
 @ApiTags('User')
@@ -19,11 +21,9 @@ export class UserController {
   // Custom Swagger page response decorator
   @ApiGetItemsResponse(FindUserResDto)
   @UseGuards(JwtAuthGuard)
+  @Roles(Role.ADMIN)
   @Get()
-  findAll(
-    @Query() { page, size }: PageReqDto,
-    @User() user: UserAfterAuth
-  ) {
+  findAll(@Query() { page, size }: PageReqDto, @User() user: UserAfterAuth) {
     console.log(user);
     return this.userService.findAll();
   }
