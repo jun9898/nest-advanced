@@ -17,8 +17,8 @@ async function bootstrap() {
   const customOptions: SwaggerCustomOptions = {
     swaggerOptions: {
       persistAuthorization: true,
-    }
-  }
+    },
+  };
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, document, customOptions);
 
@@ -31,6 +31,7 @@ async function bootstrap() {
   );
 
   await app.listen(port);
+  console.info(`STAGE: ${process.env.STAGE}`);
   console.info(`listening on port ${port}`);
 }
 bootstrap();
