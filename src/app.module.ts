@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Logger, MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { UserModule } from './user/user.module';
@@ -7,12 +7,17 @@ import { AuthModule } from './auth/auth.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import postgresConfig from './config/postgres.config';
 import jwtConfig from './config/jwt.config';
+import * as console from 'node:console';
+import { LoggerMiddleware } from './common/middleware/logger.middleware';
+import { WinstonModule } from 'nest-winston';
+import { loggerConfig } from './config/logger.config';
+import swaggerConfig from './config/swagger.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [postgresConfig, jwtConfig],
+      load: [postgresConfig, jwtConfig, swaggerConfig],
     }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
@@ -25,11 +30,11 @@ import jwtConfig from './config/jwt.config';
           username: configService.get('postgres.username'),
           password: configService.get('postgres.password'),
           autoLoadEntities: true,
+          synchronize: false,
         };
         if (configService.get('STAGE') === 'local') {
           console.info('Sync postgres');
           obj = Object.assign(obj, {
-            synchronize: true,
             logging: true,
           });
         }
@@ -40,6 +45,12 @@ import jwtConfig from './config/jwt.config';
     UserModule,
     VideoModule,
     AnalyticsModule,
+    WinstonModule.forRoot(loggerConfig),
   ],
+  providers: [Logger],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): void {
+    consumer.apply(LoggerMiddleware).forRoutes('*');
+  }
+}

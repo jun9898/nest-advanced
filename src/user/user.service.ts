@@ -8,16 +8,15 @@ import { Role } from './enum/user.enum';
 export class UserService {
   constructor(@InjectRepository(User) private readonly userRepository: Repository<User>) {}
 
-  async findAll() {
-    return 'find users';
+  async findAll(page: number, size: number) {
+    return this.userRepository.find({
+      skip: (page - 1) * size,
+      take: size,
+    });
   }
 
   async findOne(id: string) {
     return 'find user';
-  }
-
-  async create(email: string, password: string) {
-    return await this.userRepository.save({ email, password });
   }
 
   async findOneByEmail(email: string) {
@@ -27,5 +26,15 @@ export class UserService {
   async checkUserIsAdmin(id: string) {
     const user = await this.userRepository.findOneBy({ id });
     return user.role == Role.ADMIN;
+  }
+
+  async createBulk() {
+    for (let i = 4; i < 10000; i++) {
+      await this.userRepository.save({
+        email: `nest${i}@nest.com`,
+        password: 'Password1!',
+        passwordConfirm: 'Password1!',
+      });
+    }
   }
 }

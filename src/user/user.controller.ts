@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiExtraModels, ApiTags } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { FindUserReqDto } from './dto/req.dto';
@@ -10,6 +10,8 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { User, UserAfterAuth } from '../common/decorater/user.decorator';
 import { Roles } from '../common/decorater/role.decorator';
 import { Role } from './enum/user.enum';
+import { CreateDateColumn } from 'typeorm';
+import { Public } from '../common/decorater/public.decorator';
 
 @ApiBearerAuth()
 @ApiTags('User')
@@ -23,14 +25,22 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   @Roles(Role.ADMIN)
   @Get()
-  findAll(@Query() { page, size }: PageReqDto, @User() user: UserAfterAuth) {
-    console.log(user);
-    return this.userService.findAll();
+  async findAll(@Query() { page, size }: PageReqDto, @User() user: UserAfterAuth): Promise<FindUserResDto[]> {
+    const users = await this.userService.findAll(page, size);
+    return users.map(({ id, email, createdAt }) => {
+      return { id, email, createdAt: createdAt.toISOString() };
+    });
   }
 
   @ApiGetResponse(FindUserResDto)
   @Get(':id')
   findOne(@Param() { id }: FindUserReqDto) {
     return this.userService.findOne(id);
+  }
+
+  @Public()
+  @Post('bulk')
+  createBulk() {
+    return this.userService.createBulk();
   }
 }

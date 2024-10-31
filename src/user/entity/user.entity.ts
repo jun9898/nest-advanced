@@ -3,6 +3,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -16,7 +17,9 @@ export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ unique: true })
+  // unique를 true로 주면 index가 자동으로 생성된다.
+  @Index('user-email-idx')
+  @Column()
   email: string;
 
   @Column()
