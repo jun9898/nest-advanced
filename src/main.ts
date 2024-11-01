@@ -1,24 +1,23 @@
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { ApiBasicAuth, DocumentBuilder, SwaggerCustomOptions, SwaggerModule } from '@nestjs/swagger';
+import { DocumentBuilder, SwaggerCustomOptions, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
-import { utilities as nestWinstonModuleUtilities, WinstonModule } from 'nest-winston';
-import * as winston from 'winston';
+import { WinstonModule } from 'nest-winston';
 import * as process from 'node:process';
-import { loggerConfig } from './config/logger.config';
 import { TransformInterceptor } from './common/interceptor/transform.interceptor';
 import { ConfigService } from '@nestjs/config';
 import * as basicAuth from 'express-basic-auth';
+import { SentryInterceptor } from './common/interceptor/sentry.interceptor';
+import * as Sentry from '@sentry/node';
 
 async function bootstrap() {
   const port = 3000;
   const app = await NestFactory.create(AppModule, {
     bufferLogs: true,
-    logger: WinstonModule.createLogger(loggerConfig),
   });
-
   const configService = app.get(ConfigService);
   const stage = configService.get('STAGE');
+  app.useLogger(WinstonModule.createLogger(configService.get('logger')));
 
   // Swagger
   const SWAGGER_ENVS = ['local', 'dev'];
@@ -55,7 +54,8 @@ async function bootstrap() {
     }),
   );
 
-  app.useGlobalInterceptors(new TransformInterceptor());
+  // Sentry.init({ dsn: configService.get('sentry.dsn') });
+  app.useGlobalInterceptors(/*new SentryInterceptor(),*/ new TransformInterceptor());
 
   await app.listen(port);
   Logger.log(`STAGE: ${process.env.STAGE}`);

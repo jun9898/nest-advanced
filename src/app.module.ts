@@ -10,14 +10,23 @@ import jwtConfig from './config/jwt.config';
 import * as console from 'node:console';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import { WinstonModule } from 'nest-winston';
-import { loggerConfig } from './config/logger.config';
+import loggerConfig from './config/logger.config';
 import swaggerConfig from './config/swagger.config';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { HealthModule } from './health/health.module';
+import sentryConfig from './sentry.config';
 
 @Module({
   imports: [
+    ThrottlerModule.forRoot([
+      {
+        ttl: 10000,
+        limit: 10,
+      },
+    ]),
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [postgresConfig, jwtConfig, swaggerConfig],
+      load: [postgresConfig, jwtConfig, swaggerConfig, loggerConfig, sentryConfig],
     }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
@@ -45,7 +54,16 @@ import swaggerConfig from './config/swagger.config';
     UserModule,
     VideoModule,
     AnalyticsModule,
-    WinstonModule.forRoot(loggerConfig),
+    WinstonModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => {
+        const loggerConfig = configService.get('logger');
+        return {
+          ...loggerConfig,
+        };
+      },
+    }),
+    HealthModule,
   ],
   providers: [Logger],
 })
