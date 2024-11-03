@@ -14,7 +14,9 @@ import loggerConfig from './config/logger.config';
 import swaggerConfig from './config/swagger.config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { HealthModule } from './health/health.module';
+import { EmailModule } from './email/email.module';
 import sentryConfig from './sentry.config';
+import EmailConfig from "./config/email.config";
 
 @Module({
   imports: [
@@ -26,7 +28,7 @@ import sentryConfig from './sentry.config';
     ]),
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [postgresConfig, jwtConfig, swaggerConfig, loggerConfig, sentryConfig],
+      load: [postgresConfig, jwtConfig, swaggerConfig, loggerConfig, sentryConfig, EmailConfig],
     }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
@@ -44,7 +46,7 @@ import sentryConfig from './sentry.config';
         if (configService.get('STAGE') === 'local') {
           console.info('Sync postgres');
           obj = Object.assign(obj, {
-            logging: true,
+            // logging: true,
           });
         }
         return obj;
@@ -64,6 +66,7 @@ import sentryConfig from './sentry.config';
       },
     }),
     HealthModule,
+    EmailModule,
   ],
   providers: [Logger],
 })
