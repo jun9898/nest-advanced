@@ -3,8 +3,8 @@ import { utilities as nestWinstonModuleUtilities } from 'nest-winston';
 import { registerAs } from '@nestjs/config';
 import process from 'node:process';
 
-// const loggerLevel = process.env.STAGE === 'prod' ? 'info' : 'debug';
-const loggerLevel = 'debug';
+const loggerLevel = process.env.STAGE === 'prod' ? 'info' : 'debug';
+// const loggerLevel = 'debug';
 
 const loggerFormatter = winston.format.combine(
   winston.format.timestamp(),

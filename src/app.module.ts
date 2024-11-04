@@ -16,7 +16,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { HealthModule } from './health/health.module';
 import { EmailModule } from './email/email.module';
 import sentryConfig from './sentry.config';
-import EmailConfig from "./config/email.config";
+import emailConfig from './config/email.config';
 
 @Module({
   imports: [
@@ -28,7 +28,7 @@ import EmailConfig from "./config/email.config";
     ]),
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [postgresConfig, jwtConfig, swaggerConfig, loggerConfig, sentryConfig, EmailConfig],
+      load: [postgresConfig, jwtConfig, swaggerConfig, loggerConfig, sentryConfig, emailConfig],
     }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
